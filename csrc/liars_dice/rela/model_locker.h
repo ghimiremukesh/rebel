@@ -22,84 +22,117 @@
 
 #include "rela/types.h"
 
-namespace rela {
+namespace rela
+{
 
-template <class T>
-class Stack {
- public:
-  Stack() {}
+  template <class T>
+  class Stack
+  {
+  public:
+    Stack() {}
 
-  void push(T value) {
+    // Prevents more than one thread from writing to data. Lock guard unlocks the mutex
+    /*
+    The mutex class is a synchronization primitive that can be used 
+    to protect shared data from being simultaneously accessed by multiple threads 
+  */
+    void push(T value)
     {
-      std::lock_guard<std::mutex> lk(m_);
-      data_.push(value);
+      {
+        std::lock_guard<std::mutex> lk(m_);
+        data_.push(value);
+      }
+      // Notify that it is done pushing.
+      cv_.notify_one();
     }
-    cv_.notify_one();
-  }
 
-  T pop() {
-    std::unique_lock<std::mutex> lk(m_);
-    cv_.wait(lk, [this] { return !data_.empty(); });
-    auto value = data_.top();
-    data_.pop();
-    return value;
-  }
-
- private:
-  std::stack<T> data_;
-  std::mutex m_;
-  std::condition_variable cv_;
-};
-
-class ModelLocker {
- public:
-  ModelLocker(std::vector<pybind11::object> pyModels, const std::string& device)
-      : device(torch::Device(device)), pyModels_(pyModels) {
-    for (size_t i = 0; i < pyModels_.size(); ++i) {
-      models_.push_back(pyModels_[i].attr("_c").cast<TorchJitModel*>());
-      availableModels_.push(i);
+    // Remove data from stack
+    T pop()
+    {
+      // Unlock unique mutex
+      std::unique_lock<std::mutex> lk(m_);
+      /*
+      The condition_variable class is a synchronization primitive 
+      that can be used to block a thread, or multiple threads at 
+      the same time, until another thread both modifies a shared 
+      variable (the condition), and notifies the condition_variable
+      */
+      // blocks the current thread until the condition variable is woken up
+      cv_.wait(lk, [this]
+               { return !data_.empty(); });
+      // Pop
+      auto value = data_.top();
+      data_.pop();
+      return value;
     }
-  }
 
-  ModelLocker(std::vector<TorchJitModel*> models, const std::string& device)
-      : device(torch::Device(device)), models_(models) {
-    for (size_t i = 0; i < models.size(); ++i) availableModels_.push(i);
-  }
+  private:
+    std::stack<T> data_;
+    std::mutex m_;
+    std::condition_variable cv_;
+  };
 
-  void updateModel(pybind11::object pyModel) {
-    for (size_t i = 0; i < pyModels_.size(); ++i) {
-      availableModels_.pop();
+  // Multi model stuff
+  class ModelLocker
+  {
+  public:
+    ModelLocker(std::vector<pybind11::object> pyModels, const std::string &device)
+        : device(torch::Device(device)), pyModels_(pyModels)
+    {
+      for (size_t i = 0; i < pyModels_.size(); ++i)
+      {
+        models_.push_back(pyModels_[i].attr("_c").cast<TorchJitModel *>());
+        availableModels_.push(i);
+      }
     }
-    for (auto& model : pyModels_) {
-      model.attr("load_state_dict")(pyModel.attr("state_dict")());
+
+    ModelLocker(std::vector<TorchJitModel *> models, const std::string &device)
+        : device(torch::Device(device)), models_(models)
+    {
+      for (size_t i = 0; i < models.size(); ++i)
+        availableModels_.push(i);
     }
-    for (size_t i = 0; i < pyModels_.size(); ++i) {
-      availableModels_.push(i);
+
+    void updateModel(pybind11::object pyModel)
+    {
+      for (size_t i = 0; i < pyModels_.size(); ++i)
+      {
+        availableModels_.pop();
+      }
+      for (auto &model : pyModels_)
+      {
+        model.attr("load_state_dict")(pyModel.attr("state_dict")());
+      }
+      for (size_t i = 0; i < pyModels_.size(); ++i)
+      {
+        availableModels_.push(i);
+      }
     }
-  }
 
-  int lock() { return availableModels_.pop(); }
+    int lock() { return availableModels_.pop(); }
 
-  void unlock(int id) { availableModels_.push(id); }
+    void unlock(int id) { availableModels_.push(id); }
 
-  torch::Tensor forward(torch::Tensor query, int model_id = -1) {
-    const bool lock = model_id == -1;
-    const int id = lock ? availableModels_.pop() : model_id;
-    std::vector<torch::jit::IValue> inputs = {query.to(device)};
-    auto results = models_[id]->forward(inputs);
-    // Detach is needed to free the memory allocated to gradients. Either this
-    // or torch::NoGradGuard.
-    auto results_cpu = torch::detach(results.toTensor().to(torch::kCPU));
-    if (lock) availableModels_.push(id);
-    return results_cpu;
-  }
+    torch::Tensor forward(torch::Tensor query, int model_id = -1)
+    {
+      const bool lock = model_id == -1;
+      const int id = lock ? availableModels_.pop() : model_id;
+      std::vector<torch::jit::IValue> inputs = {query.to(device)};
+      auto results = models_[id]->forward(inputs);
+      // Detach is needed to free the memory allocated to gradients. Either this
+      // or torch::NoGradGuard.
+      auto results_cpu = torch::detach(results.toTensor().to(torch::kCPU));
+      if (lock)
+        availableModels_.push(id);
+      return results_cpu;
+    }
 
-  const torch::Device device;
+    const torch::Device device;
 
- private:
-  std::vector<pybind11::object> pyModels_;
-  std::vector<TorchJitModel*> models_;
-  Stack<int> availableModels_;
-};
+  private:
+    std::vector<pybind11::object> pyModels_;
+    std::vector<TorchJitModel *> models_;
+    Stack<int> availableModels_;
+  };
 
-}  // namespace rela
+} // namespace rela
