@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 namespace rela {
-
+// DataTypes used
 using TensorDict = std::unordered_map<std::string, torch::Tensor>;
 using TensorVecDict =
     std::unordered_map<std::string, std::vector<torch::Tensor>>;

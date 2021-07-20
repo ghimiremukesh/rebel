@@ -22,7 +22,10 @@
 #include "rela/types.h"
 
 namespace rela {
-
+/*
+ThreadLoop Class allows several concurrent
+tasks to loop until some event
+*/
 class ThreadLoop {
  public:
   ThreadLoop() = default;

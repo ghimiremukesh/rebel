@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/*
+A prioritized replay selects which
+experiences to replay from the memory for learning
+*/
+
 #pragma once
 
 #include <stdio.h>
@@ -27,6 +32,9 @@ namespace rela {
 
 using ExtractedData = std::vector<torch::Tensor>;
 
+/*ConcurrentQueue DataType allows multiple threads reading and writing
+to the queue without needing to lock the data structure
+ */
 template <class DataType>
 class ConcurrentQueue {
  public:
@@ -295,6 +303,7 @@ class PrioritizedReplay {
     return std::make_tuple(batch, priority);
   }
 
+  // update priorities of sampled transitions
   void updatePriority(const torch::Tensor& priority) {
     if (priority.size(0) == 0) {
       sampledIds_.clear();
