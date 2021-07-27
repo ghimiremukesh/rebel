@@ -32,6 +32,7 @@ namespace liars_dice {
 
 namespace {
 
+// Methods to initialize arrays
 template <class T>
 void init_nd(int a, int b, T value, std::vector<std::vector<T>>* array) {
   array->resize(a);

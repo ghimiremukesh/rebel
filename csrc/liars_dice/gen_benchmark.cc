@@ -32,26 +32,33 @@
 using namespace liars_dice;
 using namespace rela;
 
-int get_depth(const Tree& tree, int root = 0) {
+// Get depth of a tree
+int get_depth(const Tree &tree, int root = 0)
+{
   int depth = 1;
-  for (auto child : ChildrenIt(tree[root])) {
+  for (auto child : ChildrenIt(tree[root]))
+  {
     depth = std::max(depth, 1 + get_depth(tree, child));
   }
   return depth;
 }
 
-struct Timer {
+// Timer to time everything
+struct Timer
+{
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 
-  double tick() {
+  double tick()
+  {
     const auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
     return diff.count();
   }
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
   int num_dice = 1;
   int num_faces = 4;
   int fp_iters = 1024;
@@ -62,36 +69,56 @@ int main(int argc, char* argv[]) {
   std::string device = "cuda:1";
   std::string net_path;
   {
-    for (int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++)
+    {
       std::string arg = argv[i];
-      if (arg == "--num_dice") {
+      if (arg == "--num_dice")
+      {
         assert(i + 1 < argc);
         num_dice = std::stoi(argv[++i]);
-      } else if (arg == "--num_faces") {
+      }
+      else if (arg == "--num_faces")
+      {
         assert(i + 1 < argc);
         num_faces = std::stoi(argv[++i]);
-      } else if (arg == "--fp_iters") {
+      }
+      else if (arg == "--fp_iters")
+      {
         assert(i + 1 < argc);
         fp_iters = std::stoi(argv[++i]);
-      } else if (arg == "--mdp_depth") {
+      }
+      else if (arg == "--mdp_depth")
+      {
         assert(i + 1 < argc);
         mdp_depth = std::stoi(argv[++i]);
-      } else if (arg == "--num_threads") {
+      }
+      else if (arg == "--num_threads")
+      {
         assert(i + 1 < argc);
         num_threads = std::stoi(argv[++i]);
-      } else if (arg == "--per_gpu") {
+      }
+      else if (arg == "--per_gpu")
+      {
         assert(i + 1 < argc);
         per_gpu = std::stoi(argv[++i]);
-      } else if (arg == "--num_cycles") {
+      }
+      else if (arg == "--num_cycles")
+      {
         assert(i + 1 < argc);
         num_cycles = std::stoi(argv[++i]);
-      } else if (arg == "--device") {
+      }
+      else if (arg == "--device")
+      {
         assert(i + 1 < argc);
         device = argv[++i];
-      } else if (arg == "--net") {
+      }
+      else if (arg == "--net")
+      {
         assert(i + 1 < argc);
         net_path = argv[++i];
-      } else {
+      }
+      else
+      {
         std::cerr << "Unknown flag: " << arg << "\n";
         return -1;
       }
@@ -112,14 +139,16 @@ int main(int argc, char* argv[]) {
   }
 
   std::vector<TorchJitModel> models;
-  for (int i = 0; i < per_gpu; ++i) {
+  for (int i = 0; i < per_gpu; ++i)
+  {
     auto module = torch::jit::load(net_path);
     module.eval();
     module.to(device);
     models.push_back(module);
   }
-  std::vector<TorchJitModel*> model_ptrs;
-  for (int i = 0; i < per_gpu; ++i) {
+  std::vector<TorchJitModel *> model_ptrs;
+  for (int i = 0; i < per_gpu; ++i)
+  {
     model_ptrs.push_back(&models[i]);
   }
   auto locker = std::make_shared<ModelLocker>(model_ptrs, device);
@@ -134,7 +163,8 @@ int main(int argc, char* argv[]) {
   cfg.subgame_params.linear_update = true;
   cfg.subgame_params.optimistic = false;
   cfg.subgame_params.max_depth = mdp_depth;
-  for (int i = 0; i < num_threads; ++i) {
+  for (int i = 0; i < num_threads; ++i)
+  {
     const int seed = i;
     auto connector = std::make_shared<CVNetBufferConnector>(locker, replay);
     std::shared_ptr<ThreadLoop> loop =
@@ -144,7 +174,8 @@ int main(int argc, char* argv[]) {
   std::cout << "Starting the context" << std::endl;
   context->start();
   Timer t;
-  for (int i = 0; i < num_cycles; ++i) {
+  for (int i = 0; i < num_cycles; ++i)
+  {
     std::this_thread::sleep_for(std::chrono::seconds(10));
     double secs = t.tick();
     auto added = replay->numAdd();
