@@ -22,4 +22,4 @@ git clone https://github.com/pybind/pybind11.git
    ```
 7. Once you run `make`, you might get an error in regards to Caffe trying to locate the CuDNN file. The solution to this problem is to modify the paths in `build/CMakeCache.txt`. Particularly, you want to specify `CUDNN_INCLUDE_DIR:PATH`, `CUDNN_INCLUDE_PATH:PATH`, `CUDNN_LIBRARY:PATH`, `CUDNN_LIBRARY:PATH`, and `CUDNN_ROOT:PATH`
 
-Once you have completed all these steps, your ReBeL environment should be able to successfully built and able to run.
+Once you have completed all these steps, your ReBeL environment should be able to successfully build and be able to run.
