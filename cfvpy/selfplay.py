@@ -311,6 +311,8 @@ class CFVExp:
             logging.info(f"Creating savedir: {save_dir}")
             save_dir.mkdir(parents=True)
 
+        # Is this where the data is loaded into replay buffer?
+        # Takes time to load data, that's why there is time.sleep?
         burn_in_frames = batch_size * 2
         while replay.size() < burn_in_frames or (
             policy_replay is not None and policy_replay.size() < burn_in_frames
@@ -338,6 +340,7 @@ class CFVExp:
         num_decays = 0
         for epoch in range(self.cfg.max_epochs):
             self.train_timer.start("start")
+            # Manual changing of lr (when there is no lr scheduler)
             if (
                 epoch % self.cfg.decrease_lr_every == self.cfg.decrease_lr_every - 1
                 and self.scheduler is None
@@ -349,18 +352,20 @@ class CFVExp:
                     for param_group in self.opt.param_groups:
                         param_group["lr"] /= 2
                     num_decays += 1
+            # Create + Append validation dataset
             if (
                 self.cfg.create_validation_set_every
                 and self.is_master
                 and epoch % self.cfg.create_validation_set_every == 0
             ):
                 logging.info("Adding new validation set")
+                # Replay.sample returns (Value Transition object, Priority)
                 val_batches = [
                     replay.sample(batch_size, "cpu")[0]
                     for _ in range(512 * 100 // batch_size)
                 ]
                 val_datasets.append((f"valid_snapshot_{epoch:04d}", val_batches))
-
+            # Save replay buffer to dataset_path
             if (
                 self.cfg.selfplay.dump_dataset_every_epochs
                 and epoch % self.cfg.selfplay.dump_dataset_every_epochs == 0

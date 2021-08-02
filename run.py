@@ -77,6 +77,8 @@ def run(
     if not CFG_PATH.exists():
         CFG_PATH.mkdir(exist_ok=True, parents=True)
 
+    # Checks to see the status of exp_handle
+    # Depending on need_run, will kill, wipe, or start exp_handle
     exp_handle, need_run = heyhi.handle_dst(
         EXP_DIR,
         mode,
@@ -89,6 +91,7 @@ def run(
     logging.info("Exp dir: %s", exp_handle.exp_path)
     logging.info("Job status [before run]: %s", exp_handle.get_status())
     if need_run:
+        # Path to start training 
         heyhi.run_with_config(main, exp_handle, cfg, overrides, [CFG_PATH])
     if exp_handle.is_done():
         result = torch.load(exp_handle.result_path)
