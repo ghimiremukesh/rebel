@@ -146,6 +146,7 @@ class CFVExp:
         query = data.query.to(device)
         cf_vals = data.values.to(device, non_blocking=True)
         cf_vals_pred = self.net.forward(query)
+        # Compute either huber or mse loss
         loss_per_example = (self.loss_func(cf_vals - cf_vals_pred)).mean(-1)
 
         # Shape: scalar.
@@ -422,6 +423,8 @@ class CFVExp:
                     suffix = ""
                 self.train_timer.start("train-forward")
                 self.net.train()
+                # Trains value function 
+                # Returns loss 
                 loss_dict = self._compute_loss_dict(
                     batch, train_device, use_policy_net, timer_prefix="train-"
                 )
