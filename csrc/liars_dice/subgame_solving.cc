@@ -36,7 +36,7 @@ namespace liars_dice
 
     // Methods to initialize arrays
     template <class T>
-    void init_nd(int a, int b, T value, std::vector<std::vector<T> > *array)
+    void init_nd(int a, int b, T value, std::vector<std::vector<T>> *array)
     {
       array->resize(a);
       for (int i = 0; i < a; ++i)
@@ -47,7 +47,7 @@ namespace liars_dice
 
     template <class T>
     void init_nd(int a, int b, int c, T value,
-                 std::vector<std::vector<std::vector<T> > > *array)
+                 std::vector<std::vector<std::vector<T>>> *array)
     {
       array->resize(a);
       for (auto &subarray : *array)
@@ -61,7 +61,7 @@ namespace liars_dice
     void compute_reach_probabilities(
         const Tree &tree, const TreeStrategy &strategy,
         const std::vector<double> &initial_beliefs, int player,
-        std::vector<std::vector<double> > *reach_probabilities)
+        std::vector<std::vector<double>> *reach_probabilities)
     {
       const auto num_hands = initial_beliefs.size();
       for (size_t node_id = 0; node_id < tree.size(); ++node_id)
@@ -147,10 +147,10 @@ namespace liars_dice
 
     TreeStrategy get_uniform_reach_weigted_strategy(
         const Game &game, const Tree &tree,
-        const Pair<std::vector<double> > &initial_beliefs)
+        const Pair<std::vector<double>> &initial_beliefs)
     {
       TreeStrategy strategy = get_uniform_strategy(game, tree);
-      std::vector<std::vector<double> > reach_probabilities_buffer;
+      std::vector<std::vector<double>> reach_probabilities_buffer;
       init_nd(tree.size(), game.num_hands(), 0.0, &reach_probabilities_buffer);
       for (int traverser : {0, 1})
       {
@@ -184,15 +184,15 @@ namespace liars_dice
       const Tree tree;
 
       // Probability to reach a specific node by a player with specific under the
-      // average policy: [2, num_nodes, num_hands].
+      // average policy: [2, num_nodes, num_hands]. (2 players)
       // Computed with precompute_reaches.
-      Pair<std::vector<std::vector<double> > > reach_probabilities;
+      Pair<std::vector<std::vector<double>>> reach_probabilities;
 
       // Values for each node and hand for one of the players.
       // Shape [num_nodes, num_hands].
       // Leaf values could be populated with precompute_leaf_values.
       // It's up to subclasess to pupulate the rest.
-      std::vector<std::vector<double> > traverser_values;
+      std::vector<std::vector<double>> traverser_values;
 
       // Size of the inputs and outputs of the value network.
       const int64_t query_size, output_size;
@@ -242,6 +242,7 @@ namespace liars_dice
         }
         leaf_values =
             torch::empty({(int64_t)pseudo_leaves_indices.size(), output_size});
+        // Initialize arrays
         init_nd(tree.size(), game.num_hands(), 0.0, &traverser_values);
         init_nd(tree.size(), game.num_hands(), 0.0, &reach_probabilities[0]);
         init_nd(tree.size(), game.num_hands(), 0.0, &reach_probabilities[1]);
@@ -287,7 +288,7 @@ namespace liars_dice
 
     protected:
       void precompute_reaches(const TreeStrategy &strategy,
-                              const Pair<std::vector<double> > &initial_beliefs)
+                              const Pair<std::vector<double>> &initial_beliefs)
       {
         precompute_reaches(strategy, initial_beliefs[0], 0);
         precompute_reaches(strategy, initial_beliefs[1], 1);
@@ -371,7 +372,7 @@ namespace liars_dice
       // traverser is acting are valid.
       const TreeStrategy &compute_br(
           int traverser, const TreeStrategy &oponent_strategy,
-          const Pair<std::vector<double> > &initial_beliefs,
+          const Pair<std::vector<double>> &initial_beliefs,
           std::vector<double> *values)
       {
         precompute_reaches(oponent_strategy, initial_beliefs);
@@ -432,7 +433,7 @@ namespace liars_dice
     struct FP : public ISubgameSolver
     {
       FP(const Game &game, const Tree &tree, std::shared_ptr<IValueNet> value_net,
-         const Pair<std::vector<double> > &beliefs,
+         const Pair<std::vector<double>> &beliefs,
          const SubgameSolvingParams &params)
           : params(params),
             game(game),
@@ -452,7 +453,7 @@ namespace liars_dice
 
       FP(const Game &game, const PartialPublicState &root,
          std::shared_ptr<IValueNet> value_net,
-         const Pair<std::vector<double> > &beliefs,
+         const Pair<std::vector<double>> &beliefs,
          const SubgameSolvingParams &params)
           : FP(game, unroll_tree(game, root, params.max_depth), value_net, beliefs,
                params) {}
@@ -589,12 +590,12 @@ namespace liars_dice
       // Num updates accumulated in sum_strategies.
       int num_strategies;
       // Believes for both players: [2, num_hands].
-      const Pair<std::vector<double> > initial_beliefs;
+      const Pair<std::vector<double>> initial_beliefs;
       // Indexed by [node, hand, action].
       TreeStrategy average_strategies, sum_strategies, last_strategies;
       // Values from the last traversal at the root: [2, num_hands].
-      Pair<std::vector<double> > root_values;
-      Pair<std::vector<double> > root_values_means;
+      Pair<std::vector<double>> root_values;
+      Pair<std::vector<double>> root_values_means;
 
       Tree tree;
       BRSolver br_solver;
@@ -603,7 +604,7 @@ namespace liars_dice
     struct CFR : public ISubgameSolver, private PartialTreeTraverser
     {
       CFR(const Game &game, const Tree &tree, std::shared_ptr<IValueNet> value_net,
-          const Pair<std::vector<double> > &beliefs,
+          const Pair<std::vector<double>> &beliefs,
           const SubgameSolvingParams &params)
           : PartialTreeTraverser(game, tree, value_net),
             params(params),
@@ -622,7 +623,7 @@ namespace liars_dice
 
       CFR(const Game &game, const PartialPublicState &root,
           std::shared_ptr<IValueNet> value_net,
-          const Pair<std::vector<double> > &beliefs,
+          const Pair<std::vector<double>> &beliefs,
           const SubgameSolvingParams &params)
           : CFR(game, unroll_tree(game, root, params.max_depth), value_net, beliefs,
                 params)
@@ -631,11 +632,16 @@ namespace liars_dice
         assert(!params.linear_update || !params.dcfr);
       }
 
+      // Use this to understand CFR update regrets: https://towardsdatascience.com/counterfactual-regret-minimization-ff4204bf4205
       // Adds regrets for the last_strategies to regrets.
       // Sets traverser_values[node] to the EVs of last_strategies for traverser.
       void update_regrets(int traverser)
       {
+        // Compute all probabilities to reach each node
         precompute_reaches(last_strategies, initial_beliefs);
+        // Compute values for leaf nodes. For terminals exact value is used; for
+        // non-terminals value net is called. Reaches for both players must be
+        // precomputed.
         precompute_all_leaf_values(traverser);
 
         for (size_t public_node = tree.size(); public_node-- > 0;)
@@ -841,16 +847,16 @@ namespace liars_dice
       // Num step() done for the player.
       Pair<int> num_steps;
       // Believes for both players: [2, num_hands].
-      const Pair<std::vector<double> > initial_beliefs;
+      const Pair<std::vector<double>> initial_beliefs;
       // Indexed by [node, hand, action].
       TreeStrategy average_strategies, sum_strategies, last_strategies;
       TreeStrategy regrets;
       // Values from the last traversal at the root: [2, num_hands].
-      Pair<std::vector<double> > root_values;
-      Pair<std::vector<double> > root_values_means;
+      Pair<std::vector<double>> root_values;
+      Pair<std::vector<double>> root_values_means;
 
       // Buffer to store reach probabilties for the last_strategies.
-      std::vector<std::vector<double> > reach_probabilities_buffer;
+      std::vector<std::vector<double>> reach_probabilities_buffer;
     };
   } // namespace
 
@@ -944,7 +950,7 @@ namespace liars_dice
 
   std::unique_ptr<ISubgameSolver> build_solver(
       const Game &game, const PartialPublicState &root,
-      const Pair<std::vector<double> > &beliefs,
+      const Pair<std::vector<double>> &beliefs,
       const SubgameSolvingParams &params, std::shared_ptr<IValueNet> net)
   {
     if (params.use_cfr)
@@ -962,7 +968,7 @@ namespace liars_dice
   {
     const auto root = game.get_initial_state();
     const auto tree = unroll_tree(game, root, /*max_depth=*/1000000);
-    Pair<std::vector<double> > beliefs;
+    Pair<std::vector<double>> beliefs;
     for (auto i : {0, 1})
     {
       beliefs[i].assign(game.num_hands(), 1. / game.num_hands());
@@ -1091,7 +1097,7 @@ namespace liars_dice
     return query;
   }
 
-  std::tuple<int, PartialPublicState, std::vector<double>, std::vector<double> >
+  std::tuple<int, PartialPublicState, std::vector<double>, std::vector<double>>
   deserialize_query(const Game &game, const float *query)
   {
     int index = 0;
@@ -1107,7 +1113,7 @@ namespace liars_dice
         state.last_bid = action;
       }
     }
-    std::vector<std::vector<double> > beliefs(2);
+    std::vector<std::vector<double>> beliefs(2);
     for (int i = 0; i < game.num_hands(); ++i)
       beliefs[0].push_back(query[index++]);
     for (int i = 0; i < game.num_hands(); ++i)
@@ -1121,12 +1127,12 @@ namespace liars_dice
     auto tree = unroll_tree(game);
     assert(tree.size() == strategy1.size());
     assert(tree.size() == strategy2.size());
-    std::vector<std::vector<double> > op_reach_probabilities;
+    std::vector<std::vector<double>> op_reach_probabilities;
     init_nd(tree.size(), game.num_hands(), 0.0, &op_reach_probabilities);
     // values[node][hand] :=
     // sum_{z, node->z} sum_{op_hand}
     //  P(op_hand) pi^{-i}(z|op_hand) pi^{i}(node -> z|hand) U_i(hand, op_hand, z)
-    std::vector<std::vector<double> > values(tree.size());
+    std::vector<std::vector<double>> values(tree.size());
     const int player = 0;
     compute_reach_probabilities(tree, strategy2, get_initial_beliefs(game)[0],
                                 1 - player, &op_reach_probabilities);
@@ -1180,7 +1186,7 @@ namespace liars_dice
     return std::array<double, 2>{ev1, ev2};
   }
 
-  std::vector<std::vector<double> > compute_immediate_regrets(
+  std::vector<std::vector<double>> compute_immediate_regrets(
       const Game &game, const std::vector<TreeStrategy> &strategies)
   {
     const Tree tree = unroll_tree(game);
@@ -1245,7 +1251,7 @@ namespace liars_dice
         }
       }
     }
-    std::vector<std::vector<double> > immediate_regrets;
+    std::vector<std::vector<double>> immediate_regrets;
     init_nd(tree.size(), game.num_hands(), 0.0, &immediate_regrets);
     for (size_t public_node = tree.size(); public_node-- > 0;)
     {
