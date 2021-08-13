@@ -662,7 +662,9 @@ namespace liars_dice
               const auto &action_value = traverser_values[child_node];
               for (int hand = 0; hand < game.num_hands(); ++hand)
               {
+                // Not sure what this is?
                 regrets[public_node][hand][action] += action_value[hand];
+                // value of the parent node
                 value[hand] +=
                     action_value[hand] * last_strategies[public_node][hand][action];
               }
@@ -671,6 +673,7 @@ namespace liars_dice
             {
               for (auto [child_node, action] : ChildrenActionIt(node, game))
               {
+                // subtract each regret from parent
                 regrets[public_node][hand][action] -= value[hand];
               }
             }
@@ -767,6 +770,7 @@ namespace liars_dice
         compute_reach_probabilities(tree, last_strategies,
                                     initial_beliefs[traverser], traverser,
                                     &reach_probabilities_buffer);
+        // I think this is where they update strategies for best strategy (in average_strategies)
         for (size_t node = 0; node < tree.size(); ++node)
         {
           if (!tree[node].num_children() ||
