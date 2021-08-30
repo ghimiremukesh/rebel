@@ -108,7 +108,7 @@ namespace kuhn_poker
     std::pair<Action, Action> get_bid_range(
         const PartialPublicState &state) const
     {
-      return (kPass, kBet); // only two actions throughout the game 
+      return (0, 1); // only two actions throughout the game 
     }
 
     PartialPublicState get_initial_state() const
@@ -122,8 +122,8 @@ namespace kuhn_poker
     PartialPublicState act(const PartialPublicState &state, Action action) const
     {
       const auto range = get_bid_range(state)
-      assert(action >= range.first);
-      assert(action <= range.second);
+      //assert(action >= range.first);
+      //assert(action <= range.second);
       PartialPublicState new_state;
       new_state.last_bid = action;
       new_state.player_id = 1 - state.player_id;
