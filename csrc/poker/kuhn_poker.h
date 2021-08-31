@@ -42,6 +42,9 @@
     // ∗ pass (game proceeds to a showdown).
 
 
+    // For Reference :: https://github.com/Danielhp95/gym-kuhn-poker 
+
+
 #pragma once
 
 #include <assert.h>
@@ -57,13 +60,7 @@ namespace kuhn_poker
   // All possible actions the agent can play
   // In Kuhn Poker player can only bet or pass
   enum Action {kPass = 0; kBet = 1}; 
-  // enum class Suit
-  // {
-  //   SPADES,
-  //   HEARTS,
-  //   DIAMONDS,
-  //   CLUBS
-  // };
+
 
   struct Card
   {
@@ -88,11 +85,6 @@ namespace kuhn_poker
   public:
     const std::vector<Card> cards_on_table;
     const std::pair<int, int> community_pot; // (p1, p2) contribution of each player to the pot. ie. Player's antes
-
-    // Player ids for small and big blind
-    // const int small_blind;
-    // const int big_blind;
-    // const int deck_size;
 
     // TODO: Need to change
     Game(int deck_size)
@@ -138,9 +130,6 @@ namespace kuhn_poker
   private:
     static constexpr int kInitialAction = -1;
     const Action num_actions_;
-    //const int num_hands_;
-    //const Action liar_call_;
-    //const int wild_face_;
   };
 
 } // namespace kuhn_poker
