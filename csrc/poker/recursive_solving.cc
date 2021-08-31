@@ -25,7 +25,7 @@
 #include <random>
 #include <vector>
 
-#include "liars_dice.h"
+#include "kuhn_poker.h"
 #include "net_interface.h"
 #include "subgame_solving.h"
 #include "util.h"

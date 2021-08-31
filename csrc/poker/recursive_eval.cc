@@ -23,7 +23,7 @@
 #include "subgame_solving.h"
 #include "util.h"
 
-using namespace liars_dice;
+using namespace kuhn_poker;
 
 void report_regrets(const Game& game,
                     const std::vector<TreeStrategy>& strategy_list,
