@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "poker.h"
+#include "kuhn_poker.h"
 #include "real_net.h"
 
 #include <sstream>
 
-namespace poker {
+namespace kuhn_poker {
 std::string Game::action_to_string(Action action) const {
-  if (action == liar_call()) {
-    return "liar";
-  }
   std::ostringstream ss;
-  const auto unpacked = unpack_action(action);
-  ss << "bid(quantity=" << unpacked.quantity << ",face=" << unpacked.face
-     << ")";
+  if action == 0{
+    ss << "Pass";
+  }
+  else{
+    ss << "Bet";
+  }
   return ss.str();
 }
 
@@ -39,12 +39,13 @@ std::string Game::state_to_string(const PartialPublicState& state) const {
 }
 
 std::string Game::action_to_string_short(Action action) const {
-  if (action == liar_call()) {
-    return "liar";
-  }
   std::ostringstream ss;
-  const auto unpacked = unpack_action(action);
-  ss << unpacked.quantity << "x" << unpacked.face << "f";
+  if action == 0{
+    ss << "P";
+  }
+  else{
+    ss << "B";
+  }
   return ss.str();
 }
 
