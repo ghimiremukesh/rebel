@@ -71,9 +71,21 @@ namespace kuhn_poker
   struct PartialPublicState
   {
     // Previous call.
-    Action last_action;
+    // Action last_action;
     // Player to make move next.
-    int player_id;
+    //int player_id;
+
+    // for poker, pps consists of: (page #18 of Rebel Paper) 
+
+      // board cards
+      std::vector<int> board_cards; // vector of cards in the table; for kuhn poker there is only ones card left on the board
+
+      // common pot size divided by stack size
+      double relative_pot;
+
+      // acting player
+      int player_id;
+    
 
     bool operator==(const PartialPublicState &state) const
     {
@@ -82,12 +94,12 @@ namespace kuhn_poker
   };
   class Game
   {
-  public:
-    const std::vector<Card> cards_on_table;
+  public: // Need to think about this, is this enough? 
+    const int deck_size;
     const std::pair<int, int> community_pot; // (p1, p2) contribution of each player to the pot. ie. Player's antes
 
     // TODO: Need to change
-    Game(int deck_size)
+    Game(int deck_size, std::pair<int, int> community_pot)
         : deck_size(deck_size),
           num_actions_(2){} // always 2 (bet/pass)
           
