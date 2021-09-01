@@ -57,4 +57,4 @@ std::string Game::state_to_string_short(const PartialPublicState& state) const {
   ss << "p" << state.player_id << "," << last_bid;
   return ss.str();
 }
-}  // namespace liars_dice
+}  // namespace kuhn_poker
