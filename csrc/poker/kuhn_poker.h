@@ -62,10 +62,10 @@ namespace kuhn_poker
   enum Action {kPass = 0; kBet = 1}; 
 
 
-  struct Card
-  {
-    int number;
-  }
+  //struct Card
+  //{
+  //  int number; // card numbers: J (12), Q (13), K (14)
+  //}
 
   // Public state of the game without tracking the history of the game.
   struct PartialPublicState
@@ -95,17 +95,22 @@ namespace kuhn_poker
   class Game
   {
   public: // Need to think about this, is this enough? 
-    const int deck_size;
+    const int deck_size; // may be it should be the card
+    // const int card_number; // card numbers: J (12), Q (13), K (14)
     const std::pair<int, int> community_pot; // (p1, p2) contribution of each player to the pot. ie. Player's antes
 
     // TODO: Need to change
     Game(int deck_size, std::pair<int, int> community_pot)
         : deck_size(deck_size),
-          num_actions_(2){} // always 2 (bet/pass)
+          community_pot(community_pot),
+          num_actions_(2), // always 2 (bet/pass)
+          num_hands_(deck_size){}
           
     Action num_actions() const { return num_actions_; }
     // Number of distrinct game states at the beginning of the game. In other
     // words, number of different realization of the chance nodes.
+    int num_hands() const { return num_hands_; }
+
     // Get range of possible actions in the state as [min_action, max_action).
     
     //Not needed?

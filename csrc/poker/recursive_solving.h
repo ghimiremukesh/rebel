@@ -26,11 +26,11 @@ Recursive training and evaluation.
 #include "net_interface.h"
 #include "subgame_solving.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 struct RecursiveSolvingParams {
-  int num_dice;
-  int num_faces;
+  int card_number;
+  std::pair<int, int> community_pot;
   // Probability to explore random action for BR player.
   float random_action_prob = 1.0;
   bool sample_leaf = false;
@@ -41,7 +41,7 @@ class RlRunner {
  public:
   RlRunner(const RecursiveSolvingParams& params, std::shared_ptr<IValueNet> net,
            int seed)
-      : game_(Game(params.num_dice, params.num_faces)),
+      : game_(Game(params.card_number, params.community_pot)),
         subgame_params_(params.subgame_params),
         random_action_prob_(params.random_action_prob),
         sample_leaf_(params.sample_leaf),
@@ -60,8 +60,8 @@ class RlRunner {
       const Game& game, const SubgameSolvingParams& fp_params) {
     RecursiveSolvingParams params;
     params.subgame_params = fp_params;
-    params.num_dice = game.num_dice;
-    params.num_faces = game.num_faces;
+    params.card_number = game.card_number;
+    params.community_pot = game.community_pot;
     return params;
   }
 

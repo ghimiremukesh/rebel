@@ -23,7 +23,7 @@
 
 #include <torch/torch.h>
 
-#include "liars_dice.h"
+#include "kuhn_poker"
 #include "net_interface.h"
 #include "real_net.h"
 #include "util.h"
