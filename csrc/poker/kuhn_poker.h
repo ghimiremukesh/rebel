@@ -59,7 +59,7 @@ namespace kuhn_poker
 
   // All possible actions the agent can play
   // In Kuhn Poker player can only bet or pass
-  enum Action {kPass = 0; kBet = 1}; 
+  enum Action {kPass = 0, kBet = 1}; 
 
 
   //struct Card
@@ -71,14 +71,14 @@ namespace kuhn_poker
   struct PartialPublicState
   {
     // Previous call.
-    // Action last_action;
+      Action last_action;
     // Player to make move next.
     //int player_id;
 
     // for poker, pps consists of: (page #18 of Rebel Paper) 
 
       // board cards
-      std::vector<int> board_cards; // vector of cards in the table; for kuhn poker there is only ones card left on the board
+      std::vector<int> board_cards; // vector of cards in the table; for kuhn poker there is only one card left on the board
 
       // common pot size divided by stack size
       double relative_pot;
