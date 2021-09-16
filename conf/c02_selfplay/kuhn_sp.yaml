@@ -5,13 +5,13 @@ decrease_lr_every: 400
 decrease_lr_times: 2
 grad_clip: 5.0
 env:
-  deck_size: 3
-  community_pot: 
-  random_action_prob: 0.33
+  num_dice: 1
+  num_faces: 4
+  random_action_prob: 0.25
   sample_leaf: true
   subgame_params:
     num_iters: 1024
-    max_depth: 1
+    max_depth: 2
     linear_update: true
 exploit: true
 selfplay:

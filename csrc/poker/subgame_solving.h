@@ -21,11 +21,11 @@ Solvers (FP and CFR) for subgames.
 #include <array>
 #include <vector>
 
-#include "liars_dice.h"
+#include "kuhn_poker.h"
 #include "net_interface.h"
 #include "tree.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 template <class T>
 using Pair = std::array<T, 2>;
@@ -45,7 +45,7 @@ struct SubgameSolvingParams {
   int num_iters = 10;
   int max_depth = 2;
   bool linear_update = false;
-  bool use_cfr = false;  // Whetehr to use FP or CFR.
+  bool use_cfr = false;  // Whether to use FP or CFR.
 
   // FP only params.
   bool optimistic = false;
@@ -173,4 +173,4 @@ struct TreeStrategyStats {
   std::vector<double> node_reach;
 };
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

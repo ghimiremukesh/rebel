@@ -23,12 +23,12 @@
 
 #include <torch/torch.h>
 
-#include "kuhn_poker"
+#include "kuhn_poker.h"
 #include "net_interface.h"
 #include "real_net.h"
 #include "util.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 namespace {
 
@@ -762,29 +762,47 @@ void print_strategy(const Game& game, const Tree& tree,
   return print_strategy(game, tree, strategy, f);
 }
 
-std::vector<double> compute_win_probability(
-    const Game& game, Action bet, const std::vector<double>& beliefs) {
-  const UnpackedAction unpacked_bet = game.unpack_action(bet);
-  // belived_counts[N] is the probability that the player has a hand that has
-  // exactly N matches with the face of the bet.
-  std::vector<double> believed_counts(game.total_num_dice() + 1);
-  for (int hand = 0; hand < static_cast<int>(beliefs.size()); ++hand) {
-    int matches = game.num_matches(hand, unpacked_bet.face);
-    believed_counts[matches] += beliefs[hand];
-  }
-  // Cumulative probability to have this number of matches or more.
-  std::vector<double> cum_believed_counts(std::move(believed_counts));
-  for (size_t i = cum_believed_counts.size() - 1; i-- > 0;) {
-    cum_believed_counts[i] += cum_believed_counts[i + 1];
-  }
 
-  std::vector<double> values(game.num_hands());
-  for (int hand = 0; hand < static_cast<int>(beliefs.size()); ++hand) {
-    auto matches = game.num_matches(hand, unpacked_bet.face);
-    const int left_to_win = std::max(0, unpacked_bet.quantity - matches);
-    const float prob_to_win = cum_believed_counts[left_to_win];
-    values[hand] = prob_to_win;
-  }
+    for(int hand_m = 0; hand_m < 3; ++hand_m) {
+      for(int hand_o = 0; hand_o < 3) {
+        if hand_o = hand_m skip;
+        const float prob_to_win = if op_beliefs[hand_o] > my_beliefs[hand_m] return 1 else return 0
+        values[hand_o] = prob_to_win
+      }
+    }
+    
+std::vector<double> compute_win_probability(
+    const Game& game, const std::vector<double>& op_beliefs, const std::vector<double>& my_beliefs ) {
+      std::vector<double> values(game.num_hands());
+      for (int hand_m = 0; hand_m < 3; ++hand_m){
+        for (int hand_o = 0; hand_o < 3; ++hand_o){
+          if hand_o != hand_m{
+            const float prob_to_win = (op_beliefs[hand_o] > my_beliefs[hand_m]) ? 1 : 0;
+            values[hand_o] = prob_to_win;
+          }
+        }
+      }
+  // const UnpackedAction unpacked_bet = game.unpack_action(bet);
+  // // belived_counts[N] is the probability that the player has a hand that has
+  // // exactly N matches with the face of the bet.
+  // std::vector<double> believed_counts(game.total_num_dice() + 1);
+  // for (int hand = 0; hand < static_cast<int>(beliefs.size()); ++hand) {
+  //   int matches = game.num_matches(hand, unpacked_bet.face);
+  //   believed_counts[matches] += beliefs[hand];
+  // }
+  // // Cumulative probability to have this number of matches or more.
+  // std::vector<double> cum_believed_counts(std::move(believed_counts));
+  // for (size_t i = cum_believed_counts.size() - 1; i-- > 0;) {
+  //   cum_believed_counts[i] += cum_believed_counts[i + 1];
+  // }
+
+  // std::vector<double> values(game.num_hands());
+  // for (int hand = 0; hand < static_cast<int>(beliefs.size()); ++hand) {
+  //   auto matches = game.num_matches(hand, unpacked_bet.face);
+  //   const int left_to_win = std::max(0, unpacked_bet.quantity - matches);
+  //   const float prob_to_win = cum_believed_counts[left_to_win];
+  //   values[hand] = prob_to_win;
+  // }
   return values;
 }
 
@@ -1049,4 +1067,4 @@ std::vector<std::vector<double>> compute_immediate_regrets(
   return immediate_regrets;
 }
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

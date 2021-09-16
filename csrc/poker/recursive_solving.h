@@ -29,7 +29,7 @@ Recursive training and evaluation.
 namespace kuhn_poker {
 
 struct RecursiveSolvingParams {
-  int card_number;
+  int deck_size;
   std::pair<int, int> community_pot;
   // Probability to explore random action for BR player.
   float random_action_prob = 1.0;
@@ -41,7 +41,7 @@ class RlRunner {
  public:
   RlRunner(const RecursiveSolvingParams& params, std::shared_ptr<IValueNet> net,
            int seed)
-      : game_(Game(params.card_number, params.community_pot)),
+      : game_(Game(params.deck_size, params.community_pot)),
         subgame_params_(params.subgame_params),
         random_action_prob_(params.random_action_prob),
         sample_leaf_(params.sample_leaf),
@@ -60,7 +60,7 @@ class RlRunner {
       const Game& game, const SubgameSolvingParams& fp_params) {
     RecursiveSolvingParams params;
     params.subgame_params = fp_params;
-    params.card_number = game.card_number;
+    params.card_number = game.deck_size;
     params.community_pot = game.community_pot;
     return params;
   }
@@ -105,4 +105,4 @@ TreeStrategy compute_sampled_strategy_recursive_to_leaf(
     const Game& game, const SubgameSolvingParams& subgame_params,
     std::shared_ptr<IValueNet> net, int seed, bool root_only = false);
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker
