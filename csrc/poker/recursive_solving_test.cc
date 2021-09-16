@@ -32,7 +32,7 @@
 #include "real_net.h"
 #include "recursive_solving.h"
 
-using namespace liars_dice;
+using namespace kuhn_poker;
 
 TEST(Mdp, TestZeroNet) {
   const int num_dice = 1;

@@ -16,15 +16,15 @@
 
 #include <memory>
 
-#include "liars_dice.h"
+#include "kuhn_poker.h"
 #include "net_interface.h"
 #include "subgame_solving.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 float eval_net(const Game& game, const TreeStrategy& net_strategy,
                const TreeStrategy& full_strategy, int mdp_depth, int fp_iters,
                std::shared_ptr<IValueNet> net, bool traverse_by_net,
                bool verbose);
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

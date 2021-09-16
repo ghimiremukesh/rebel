@@ -19,12 +19,12 @@
 
 #include <torch/torch.h>
 
-#include "liars_dice.h"
+#include "kuhn_poker.h"
 #include "net_interface.h"
 #include "subgame_solving.h"
 #include "util.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 namespace {
 
@@ -152,4 +152,4 @@ float eval_net(const Game& game, const TreeStrategy& net_strategy,
   return mse;
 }
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

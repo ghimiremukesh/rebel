@@ -313,8 +313,8 @@ int main(int argc, char* argv[]) {
     assert(mdp_depth > 0);
     std::shared_ptr<IValueNet> net =
         net_path == "zero"
-            ? liars_dice::create_zero_net(game.num_hands(), false)
-            : liars_dice::create_torchscript_net(net_path);
+            ? kuhn_poker::create_zero_net(game.num_hands(), false)
+            : kuhn_poker::create_torchscript_net(net_path);
 
     std::cout << "##############################################\n";
     std::cout << "##### Recursive solving                      #\n";
@@ -330,10 +330,10 @@ int main(int argc, char* argv[]) {
           if (eval_oracle_values_iters > 0) {
             oracle_net_params.num_iters = eval_oracle_values_iters;
           }
-          return liars_dice::create_oracle_value_predictor(game,
+          return kuhn_poker::create_oracle_value_predictor(game,
                                                            oracle_net_params);
         } else {
-          return liars_dice::create_torchscript_net(net_path, "cpu");
+          return kuhn_poker::create_torchscript_net(net_path, "cpu");
         }
       };
 

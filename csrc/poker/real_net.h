@@ -19,7 +19,7 @@
 #include "net_interface.h"
 #include "subgame_solving.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 // Creates a net that outputs zeros on query and nothing on update.
 std::shared_ptr<IValueNet> create_zero_net(int output_size,
@@ -34,4 +34,4 @@ std::shared_ptr<IValueNet> create_torchscript_net(const std::string& path,
 std::shared_ptr<IValueNet> create_oracle_value_predictor(
     const Game& game, const SubgameSolvingParams& params);
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

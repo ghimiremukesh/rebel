@@ -30,7 +30,7 @@
 #include "subgame_solving.h"
 #include "util.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 namespace {
 
@@ -326,4 +326,4 @@ TreeStrategy compute_sampled_strategy_recursive_to_leaf(
                                               /*use_samplig_strategy=*/true);
 }
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

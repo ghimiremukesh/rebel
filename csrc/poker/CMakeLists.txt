@@ -34,12 +34,12 @@ if (NOT TARGET torch_library)
   find_package(Torch REQUIRED)
 endif()
 
-add_library(liars_dice_lib liars_dice subgame_solving real_net recursive_solving stats)
-target_link_libraries(liars_dice_lib torch)
-set_target_properties(liars_dice_lib PROPERTIES CXX_STANDARD 17)
+add_library(kuhn_poker_lib kuhn_poker subgame_solving real_net recursive_solving stats)
+target_link_libraries(kuhn_poker_lib torch)
+set_target_properties(kuhn_poker_lib PROPERTIES CXX_STANDARD 17)
 
 add_executable(recursive_eval recursive_eval)
-target_link_libraries(recursive_eval liars_dice_lib)
+target_link_libraries(recursive_eval kuhn_poker_lib)
 
 add_subdirectory(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/pybind11 third_party/pybind11
@@ -55,28 +55,28 @@ target_link_libraries(_rela torch)
 
 # python lib
 pybind11_add_module(rela rela/pybind.cc)
-target_link_libraries(rela PUBLIC _rela liars_dice_lib)
+target_link_libraries(rela PUBLIC _rela kuhn_poker_lib)
 
 add_executable(gen_benchmark gen_benchmark)
-target_link_libraries(gen_benchmark liars_dice_lib _rela)
+target_link_libraries(gen_benchmark kuhn_poker_lib _rela)
 
 #################
 # Tests
 include(GoogleTest)
 enable_testing()
 
-add_executable(liar_game_test liars_dice_test.cc)
-target_link_libraries(liar_game_test liars_dice_lib gtest_main)
+add_executable(liar_game_test kuhn_poker_test.cc)
+target_link_libraries(liar_game_test kuhn_poker_lib gtest_main)
 add_test(NAME liar_game COMMAND liar_game_test)
 
 add_executable(liar_tree_test tree_test.cc)
-target_link_libraries(liar_tree_test liars_dice_lib gtest_main)
+target_link_libraries(liar_tree_test kuhn_poker_lib gtest_main)
 add_test(NAME liar_tree COMMAND liar_tree_test)
 
 add_executable(liar_recursive_solving_test recursive_solving_test.cc)
-target_link_libraries(liar_recursive_solving_test liars_dice_lib gtest_main)
+target_link_libraries(liar_recursive_solving_test kuhn_poker_lib gtest_main)
 add_test(NAME liar_recursive_solving COMMAND liar_recursive_solving_test)
 
 add_executable(liar_subgame_solving_test subgame_solving_test.cc)
-target_link_libraries(liar_subgame_solving_test liars_dice_lib gtest_main)
+target_link_libraries(liar_subgame_solving_test kuhn_poker_lib gtest_main)
 add_test(NAME liar_subgame_solving COMMAND liar_subgame_solving_test)

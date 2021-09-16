@@ -17,7 +17,7 @@
 #include <numeric>
 #include <vector>
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 constexpr double kAlmostZero = 1e-200;
 
@@ -89,4 +89,4 @@ T vector_sum(const std::vector<T>& vector) {
   return std::accumulate(vector.begin(), vector.end(), T{0});
 }
 
-}  // namespace liars_dice
+}  // namespace kuhn_poker

@@ -19,9 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "liars_dice.h"
+#include "kuhn_poker.h"
 
-namespace liars_dice {
+namespace kuhn_poker {
 
 struct UnrolledTreeNode;
 using Tree = std::vector<UnrolledTreeNode>;
@@ -130,4 +130,4 @@ struct ChildrenIt {
   State begin() const { return State(node.children_begin); }
   State end() const { return State(node.children_end); }
 };
-}  // namespace liars_dice
+}  // namespace kuhn_poker
