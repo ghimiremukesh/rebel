@@ -4,5 +4,4 @@ cfvpy/rela*.so
 ^exps/
 strategy*.txt
 __pycache__/
-.vscode/c_cpp_properties.json
-.vscode/settings.json
+.vscode
