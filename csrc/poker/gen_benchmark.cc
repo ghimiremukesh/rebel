@@ -52,8 +52,8 @@ struct Timer {
 };
 
 int main(int argc, char* argv[]) {
-  int num_dice = 1;
-  int num_faces = 4;
+  int deck_size = 1;
+  std::pair<int, int> community_pot = std::make_pair(1, 1);
   int fp_iters = 1024;
   int mdp_depth = 2;
   int num_threads = 10;
@@ -64,12 +64,12 @@ int main(int argc, char* argv[]) {
   {
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
-      if (arg == "--num_dice") {
+      if (arg == "--deck_size") {
         assert(i + 1 < argc);
-        num_dice = std::stoi(argv[++i]);
-      } else if (arg == "--num_faces") {
+        deck_size = std::stoi(argv[++i]);
+      } else if (arg == "--community_pot") {
         assert(i + 1 < argc);
-        num_faces = std::stoi(argv[++i]);
+        community_pot = std::make_pair(std::stoi(argv[++i]), std::stoi(argv[++i]));
       } else if (arg == "--fp_iters") {
         assert(i + 1 < argc);
         fp_iters = std::stoi(argv[++i]);
@@ -97,14 +97,14 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-  assert(num_dice != -1);
-  assert(num_faces != -1);
+  assert(deck_size != -1);
+  assert(community_pot != std::make_pair(-1, -1));
   assert(mdp_depth != -1);
 
-  const Game game(num_dice, num_faces);
+  const Game game(deck_size, community_pot);
   assert(mdp_depth > 0);
   assert(!net_path.empty());
-  std::cout << "num_dice=" << num_dice << " num_faces=" << num_faces << "\n";
+  std::cout << "deck_size=" << deck_size << " community_pot=" << community_pot << "\n";
   {
     const auto full_tree = unroll_tree(game);
     std::cout << "Tree of depth " << get_depth(full_tree) << " has "
@@ -128,8 +128,8 @@ int main(int argc, char* argv[]) {
   auto context = std::make_shared<Context>();
 
   RecursiveSolvingParams cfg;
-  cfg.num_dice = num_dice;
-  cfg.num_faces = num_faces;
+  cfg.deck_size = deck_size;
+  cfg.community_pot = community_pot;
   cfg.subgame_params.num_iters = fp_iters;
   cfg.subgame_params.linear_update = true;
   cfg.subgame_params.optimistic = false;

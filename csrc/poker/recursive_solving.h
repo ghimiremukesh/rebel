@@ -60,7 +60,7 @@ class RlRunner {
       const Game& game, const SubgameSolvingParams& fp_params) {
     RecursiveSolvingParams params;
     params.subgame_params = fp_params;
-    params.card_number = game.deck_size;
+    params.deck_size = game.deck_size;
     params.community_pot = game.community_pot;
     return params;
   }

@@ -61,12 +61,12 @@ class CVNetBufferConnector : public IValueNet {
 class DataThreadLoop : public ThreadLoop {
  public:
   DataThreadLoop(std::shared_ptr<CVNetBufferConnector> connector,
-                 const liars_dice::RecursiveSolvingParams& cfg, int seed)
+                 const kuhn_poker::RecursiveSolvingParams& cfg, int seed)
       : connector_(std::move(connector)), cfg_(cfg), seed_(seed) {}
 
   virtual void mainLoop() final {
     auto runner =
-        std::make_unique<liars_dice::RlRunner>(cfg_, connector_, seed_);
+        std::make_unique<kuhn_poker::RlRunner>(cfg_, connector_, seed_);
     while (!terminated()) {
       if (paused()) {
         waitUntilResume();
@@ -77,7 +77,7 @@ class DataThreadLoop : public ThreadLoop {
 
  private:
   std::shared_ptr<IValueNet> connector_;
-  const liars_dice::RecursiveSolvingParams cfg_;
+  const kuhn_poker::RecursiveSolvingParams cfg_;
   const int seed_;
 };
 

@@ -62,21 +62,21 @@ target_link_libraries(gen_benchmark kuhn_poker_lib _rela)
 
 #################
 # Tests
-include(GoogleTest)
-enable_testing()
+#include(GoogleTest)
+#enable_testing()
 
-add_executable(liar_game_test kuhn_poker_test.cc)
-target_link_libraries(liar_game_test kuhn_poker_lib gtest_main)
-add_test(NAME liar_game COMMAND liar_game_test)
+#add_executable(liar_game_test kuhn_poker_test.cc)
+#target_link_libraries(liar_game_test kuhn_poker_lib gtest_main)
+#add_test(NAME liar_game COMMAND liar_game_test)
 
-add_executable(liar_tree_test tree_test.cc)
-target_link_libraries(liar_tree_test kuhn_poker_lib gtest_main)
-add_test(NAME liar_tree COMMAND liar_tree_test)
+#add_executable(liar_tree_test tree_test.cc)
+#target_link_libraries(liar_tree_test kuhn_poker_lib gtest_main)
+#add_test(NAME liar_tree COMMAND liar_tree_test)
 
-add_executable(liar_recursive_solving_test recursive_solving_test.cc)
-target_link_libraries(liar_recursive_solving_test kuhn_poker_lib gtest_main)
-add_test(NAME liar_recursive_solving COMMAND liar_recursive_solving_test)
+#add_executable(liar_recursive_solving_test recursive_solving_test.cc)
+#target_link_libraries(liar_recursive_solving_test kuhn_poker_lib gtest_main)
+#add_test(NAME liar_recursive_solving COMMAND liar_recursive_solving_test)
 
-add_executable(liar_subgame_solving_test subgame_solving_test.cc)
-target_link_libraries(liar_subgame_solving_test kuhn_poker_lib gtest_main)
-add_test(NAME liar_subgame_solving COMMAND liar_subgame_solving_test)
+#add_executable(liar_subgame_solving_test subgame_solving_test.cc)
+#target_link_libraries(liar_subgame_solving_test kuhn_poker_lib gtest_main)
+#add_test(NAME liar_subgame_solving COMMAND liar_subgame_solving_test)

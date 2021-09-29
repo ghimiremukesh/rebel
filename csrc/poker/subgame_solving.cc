@@ -63,7 +63,7 @@ void compute_reach_probabilities(
       const auto& node = tree[node_id];
       const auto& state = node.state;
       const auto last_action_player_id = tree[node.parent].state.player_id;
-      const Action last_action = state.last_bid;
+      const Action last_action = state.last_action;
       if (player == last_action_player_id) {
         for (size_t hand = 0; hand < num_hands; ++hand) {
           (*reach_probabilities)[node_id][hand] =
@@ -78,9 +78,9 @@ void compute_reach_probabilities(
 }
 
 std::vector<double> compute_expected_terminal_values(
-    const Game& game, Action last_bid, bool inverse,
+    const Game& game, Action last_action, bool inverse,
     std::vector<double>& op_reach_probabilities) {
-  auto values = compute_win_probability(game, last_bid, op_reach_probabilities);
+  auto values = compute_win_probability(game, last_action, op_reach_probabilities);
   // Need to convert the probabilities to the payoff the traverser. Note,
   // the probabilities are true probabilities iff op_beliefs sum to 1.
   const auto belief_sum = vector_sum(op_reach_probabilities);
@@ -109,9 +109,9 @@ int64_t write_query_to(const Game& game, int traverser,
   buffer[write_index++] = static_cast<float>(state.player_id);
   buffer[write_index++] = static_cast<float>(traverser);
   // Hack: last action is the liar call.
-  assert(state.last_bid != game.num_actions() - 1);
+  assert(state.last_action != game.num_actions() - 1);
   for (Action action = 0; action < game.num_actions(); ++action) {
-    buffer[write_index++] = static_cast<float>(action == state.last_bid);
+    buffer[write_index++] = static_cast<float>(action == state.last_action);
   }
   normalize_probabilities_safe(reaches1, kReachSmoothingEps,
                                &buffer[write_index]);
@@ -228,7 +228,7 @@ struct PartialTreeTraverser {
   void precompute_reaches(const TreeStrategy& strategy,
                           const std::vector<double>& initial_beliefs,
                           int player) {
-    liars_dice::compute_reach_probabilities(
+    kuhn_poker::compute_reach_probabilities(
         tree, strategy, initial_beliefs, player, &reach_probabilities[player]);
   }
 
@@ -284,9 +284,9 @@ struct PartialTreeTraverser {
   // Populate traverser_values for terminal nodes.
   void precompute_terminal_leaves_values(int traverser) {
     for (auto node_id : terminal_indices) {
-      const auto last_bid = tree[tree[node_id].parent].state.last_bid;
+      const auto last_action = tree[tree[node_id].parent].state.last_action;
       traverser_values[node_id] = compute_expected_terminal_values(
-          game, last_bid,
+          game, last_action,
           /*inverse=*/tree[node_id].state.player_id != traverser,
           reach_probabilities[1 - traverser][node_id]);
     }
@@ -478,7 +478,7 @@ struct FP : public ISubgameSolver {
   }
 
   void print_strategy(const std::string& path) const override {
-    liars_dice::print_strategy(game, tree, average_strategies, path);
+    kuhn_poker::print_strategy(game, tree, average_strategies, path);
   }
 
   std::vector<double> get_hand_values(int player_id) const override {
@@ -688,7 +688,7 @@ struct CFR : public ISubgameSolver, private PartialTreeTraverser {
   }
 
   void print_strategy(const std::string& path) const override {
-    liars_dice::print_strategy(game, tree, average_strategies, path);
+    kuhn_poker::print_strategy(game, tree, average_strategies, path);
   }
 
   std::vector<double> get_hand_values(int player_id) const override {
@@ -763,20 +763,20 @@ void print_strategy(const Game& game, const Tree& tree,
 }
 
 
-    for(int hand_m = 0; hand_m < 3; ++hand_m) {
-      for(int hand_o = 0; hand_o < 3) {
-        if hand_o = hand_m skip;
-        const float prob_to_win = if op_beliefs[hand_o] > my_beliefs[hand_m] return 1 else return 0
-        values[hand_o] = prob_to_win
-      }
-    }
+    // for (int hand_m = 0; hand_m < 3; ++hand_m) {
+    //   for (int hand_o = 0; hand_o < 3) {
+    //     if hand_o = hand_m skip;
+    //     const float prob_to_win = if op_beliefs[hand_o] > my_beliefs[hand_m] return 1 else return 0
+    //     values[hand_o] = prob_to_win
+    //   }
+    // }
     
 std::vector<double> compute_win_probability(
     const Game& game, const std::vector<double>& op_beliefs, const std::vector<double>& my_beliefs ) {
       std::vector<double> values(game.num_hands());
-      for (int hand_m = 0; hand_m < 3; ++hand_m){
-        for (int hand_o = 0; hand_o < 3; ++hand_o){
-          if hand_o != hand_m{
+      for (int hand_m = 0; hand_m < 3; ++hand_m) {
+        for (int hand_o = 0; hand_o < 3; ++hand_o) {
+          if (hand_o != hand_m) {
             const float prob_to_win = (op_beliefs[hand_o] > my_beliefs[hand_m]) ? 1 : 0;
             values[hand_o] = prob_to_win;
           }
@@ -872,9 +872,9 @@ TreeStrategyStats compute_stategy_stats(const Game& game,
       std::vector<double> op_beliefs = normalize_probabilities_safe(
           op_reach_probabilities, kReachSmoothingEps);
       if (game.is_terminal(state)) {
-        const auto last_bid = tree[node.parent].state.last_bid;
+        const auto last_action = tree[node.parent].state.last_action;
         node_values = compute_expected_terminal_values(
-            game, last_bid, /*inverse=*/state.player_id != player, op_beliefs);
+            game, last_action, /*inverse=*/state.player_id != player, op_beliefs);
       } else {
         assert(node.num_children() > 0);
       }
@@ -932,10 +932,10 @@ deserialize_query(const Game& game, const float* query) {
   state.player_id = query[index++] + 0.5;
   const int traverser = query[index++] + 0.5;
   // TODO(akhti): use constant for initial action.
-  state.last_bid = -1;
+  state.last_action = -1;
   for (Action action = 0; action < game.num_actions(); ++action) {
     if (query[index++] > 0.5) {
-      state.last_bid = action;
+      state.last_action = action;
     }
   }
   std::vector<std::vector<double>> beliefs(2);
@@ -966,9 +966,9 @@ std::vector<double> compute_ev(const Game& game, const TreeStrategy& strategy1,
     const auto& state = node.state;
     if (node.num_children() == 0) {
       assert(game.is_terminal(state));
-      const auto last_bid = tree[node.parent].state.last_bid;
+      const auto last_action = tree[node.parent].state.last_action;
       values[node_id] = compute_expected_terminal_values(
-          game, last_bid, /*inverse=*/state.player_id != player,
+          game, last_action, /*inverse=*/state.player_id != player,
           op_reach_probabilities[node_id]);
     } else if (state.player_id == player) {
       values[node_id].resize(game.num_hands());

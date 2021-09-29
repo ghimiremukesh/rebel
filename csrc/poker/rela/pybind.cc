@@ -36,35 +36,35 @@ namespace {
 std::shared_ptr<ThreadLoop> create_cfr_thread(
     std::shared_ptr<ModelLocker> modelLocker,
     std::shared_ptr<ValuePrioritizedReplay> replayBuffer,
-    const liars_dice::RecursiveSolvingParams& cfg, int seed) {
+    const kuhn_poker::RecursiveSolvingParams& cfg, int seed) {
   auto connector =
       std::make_shared<CVNetBufferConnector>(modelLocker, replayBuffer);
   return std::make_shared<DataThreadLoop>(std::move(connector), cfg, seed);
 }
 
-float compute_exploitability(liars_dice::RecursiveSolvingParams params,
+float compute_exploitability(kuhn_poker::RecursiveSolvingParams params,
                              const std::string& model_path) {
   py::gil_scoped_release release;
-  liars_dice::Game game(params.num_dice, params.num_faces);
+  kuhn_poker::Game game(params.deck_size, params.community_pot);
   std::shared_ptr<IValueNet> net =
-      liars_dice::create_torchscript_net(model_path);
+      kuhn_poker::create_torchscript_net(model_path);
   const auto tree_strategy =
       compute_strategy_recursive(game, params.subgame_params, net);
-  liars_dice::print_strategy(game, unroll_tree(game), tree_strategy);
-  return liars_dice::compute_exploitability(game, tree_strategy);
+  kuhn_poker::print_strategy(game, unroll_tree(game), tree_strategy);
+  return kuhn_poker::compute_exploitability(game, tree_strategy);
 }
 
-auto compute_stats_with_net(liars_dice::RecursiveSolvingParams params,
+auto compute_stats_with_net(kuhn_poker::RecursiveSolvingParams params,
                             const std::string& model_path) {
   py::gil_scoped_release release;
-  liars_dice::Game game(params.num_dice, params.num_faces);
+  kuhn_poker::Game game(params.deck_size, params.community_pot);
   std::shared_ptr<IValueNet> net =
-      liars_dice::create_torchscript_net(model_path);
+      kuhn_poker::create_torchscript_net(model_path);
   const auto net_strategy =
       compute_strategy_recursive_to_leaf(game, params.subgame_params, net);
-  liars_dice::print_strategy(game, unroll_tree(game), net_strategy);
+  kuhn_poker::print_strategy(game, unroll_tree(game), net_strategy);
   const float explotability =
-      liars_dice::compute_exploitability(game, net_strategy);
+      kuhn_poker::compute_exploitability(game, net_strategy);
 
   auto full_params = params.subgame_params;
   full_params.max_depth = 100000;
@@ -83,11 +83,11 @@ auto compute_stats_with_net(liars_dice::RecursiveSolvingParams params,
   return std::make_tuple(explotability, mse_net_traverse, mse_full_traverse);
 }
 
-float compute_exploitability_no_net(liars_dice::RecursiveSolvingParams params) {
+float compute_exploitability_no_net(kuhn_poker::RecursiveSolvingParams params) {
   py::gil_scoped_release release;
-  liars_dice::Game game(params.num_dice, params.num_faces);
-  auto fp = liars_dice::build_solver(game, game.get_initial_state(),
-                                     liars_dice::get_initial_beliefs(game),
+  kuhn_poker::Game game(params.deck_size, params.community_pot);
+  auto fp = kuhn_poker::build_solver(game, game.get_initial_state(),
+                                     kuhn_poker::get_initial_beliefs(game),
                                      params.subgame_params, /*net=*/nullptr);
   float values[2] = {0.0};
   for (int iter = 0; iter < params.subgame_params.num_iters; ++iter) {
@@ -100,7 +100,7 @@ float compute_exploitability_no_net(liars_dice::RecursiveSolvingParams params) {
     // Check for Ctrl-C.
     if (PyErr_CheckSignals() != 0) throw py::error_already_set();
   }
-  liars_dice::print_strategy(game, unroll_tree(game), fp->get_strategy());
+  kuhn_poker::print_strategy(game, unroll_tree(game), fp->get_strategy());
   return values[0] + values[1];
 }
 
@@ -146,38 +146,38 @@ PYBIND11_MODULE(rela, m) {
 
   py::class_<ThreadLoop, std::shared_ptr<ThreadLoop>>(m, "ThreadLoop");
 
-  py::class_<liars_dice::SubgameSolvingParams>(m, "SubgameSolvingParams")
+  py::class_<kuhn_poker::SubgameSolvingParams>(m, "SubgameSolvingParams")
       .def(py::init<>())
-      .def_readwrite("num_iters", &liars_dice::SubgameSolvingParams::num_iters)
-      .def_readwrite("max_depth", &liars_dice::SubgameSolvingParams::max_depth)
+      .def_readwrite("num_iters", &kuhn_poker::SubgameSolvingParams::num_iters)
+      .def_readwrite("max_depth", &kuhn_poker::SubgameSolvingParams::max_depth)
       .def_readwrite("linear_update",
-                     &liars_dice::SubgameSolvingParams::linear_update)
+                     &kuhn_poker::SubgameSolvingParams::linear_update)
       .def_readwrite("optimistic",
-                     &liars_dice::SubgameSolvingParams::optimistic)
-      .def_readwrite("use_cfr", &liars_dice::SubgameSolvingParams::use_cfr)
-      .def_readwrite("dcfr", &liars_dice::SubgameSolvingParams::dcfr)
+                     &kuhn_poker::SubgameSolvingParams::optimistic)
+      .def_readwrite("use_cfr", &kuhn_poker::SubgameSolvingParams::use_cfr)
+      .def_readwrite("dcfr", &kuhn_poker::SubgameSolvingParams::dcfr)
       .def_readwrite("dcfr_alpha",
-                     &liars_dice::SubgameSolvingParams::dcfr_alpha)
-      .def_readwrite("dcfr_beta", &liars_dice::SubgameSolvingParams::dcfr_beta)
+                     &kuhn_poker::SubgameSolvingParams::dcfr_alpha)
+      .def_readwrite("dcfr_beta", &kuhn_poker::SubgameSolvingParams::dcfr_beta)
       .def_readwrite("dcfr_gamma",
-                     &liars_dice::SubgameSolvingParams::dcfr_gamma);
+                     &kuhn_poker::SubgameSolvingParams::dcfr_gamma);
 
-  py::class_<liars_dice::RecursiveSolvingParams>(m, "RecursiveSolvingParams")
+  py::class_<kuhn_poker::RecursiveSolvingParams>(m, "RecursiveSolvingParams")
       .def(py::init<>())
-      .def_readwrite("num_dice", &liars_dice::RecursiveSolvingParams::num_dice)
-      .def_readwrite("num_faces",
-                     &liars_dice::RecursiveSolvingParams::num_faces)
+      .def_readwrite("deck_size", &kuhn_poker::RecursiveSolvingParams::deck_size)
+      .def_readwrite("community_pot",
+                     &kuhn_poker::RecursiveSolvingParams::community_pot)
       .def_readwrite("random_action_prob",
-                     &liars_dice::RecursiveSolvingParams::random_action_prob)
+                     &kuhn_poker::RecursiveSolvingParams::random_action_prob)
       .def_readwrite("sample_leaf",
-                     &liars_dice::RecursiveSolvingParams::sample_leaf)
+                     &kuhn_poker::RecursiveSolvingParams::sample_leaf)
       .def_readwrite("subgame_params",
-                     &liars_dice::RecursiveSolvingParams::subgame_params);
+                     &kuhn_poker::RecursiveSolvingParams::subgame_params);
 
   py::class_<DataThreadLoop, ThreadLoop, std::shared_ptr<DataThreadLoop>>(
       m, "DataThreadLoop")
       .def(py::init<std::shared_ptr<CVNetBufferConnector>,
-                    const liars_dice::RecursiveSolvingParams&, int>(),
+                    const kuhn_poker::RecursiveSolvingParams&, int>(),
            py::arg("connector"), py::arg("params"), py::arg("thread_id"));
 
   py::class_<rela::Context>(m, "Context")

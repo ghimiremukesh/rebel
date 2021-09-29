@@ -56,11 +56,13 @@
 
 namespace kuhn_poker
 {
-
-  // All possible actions the agent can play
+   // All possible actions the agent can play
   // In Kuhn Poker player can only bet or pass
-  enum Action {kPass = 0, kBet = 1}; 
+ // enum Action {kPass = 0, kBet = 1}; 
 
+  using Action = int;
+  Action kPass = 0;
+  Action kBet = 1;
 
   //struct Card
   //{
@@ -85,6 +87,8 @@ namespace kuhn_poker
 
       // acting player
       int player_id;
+
+     // Action last_bid;
     
 
     bool operator==(const PartialPublicState &state) const
@@ -103,13 +107,14 @@ namespace kuhn_poker
     Game(int deck_size, std::pair<int, int> community_pot)
         : deck_size(deck_size),
           community_pot(community_pot),
-          num_actions_(2), // always 2 (bet/pass)
+          num_actions_((Action) 2), // always 2 (bet/pass)
           num_hands_(deck_size){}
           
     Action num_actions() const { return num_actions_; }
     // Number of distrinct game states at the beginning of the game. In other
     // words, number of different realization of the chance nodes.
     int num_hands() const { return num_hands_; }
+    int max_depth() const { return 1; }
 
     // Get range of possible actions in the state as [min_action, max_action).
     
@@ -117,24 +122,29 @@ namespace kuhn_poker
     std::pair<Action, Action> get_bid_range(
         const PartialPublicState &state) const
     {
-      return (0, 1); // only two actions throughout the game 
+      return std::make_pair(kPass, kBet); // only two actions throughout the game 
     }
 
+    bool is_terminal(const PartialPublicState &state) const
+    {
+      return state.player_id == 1;
+    }
+    
     PartialPublicState get_initial_state() const
     {
       PartialPublicState state;
-      state.last_bid = kInitialAction;
+      state.last_action = kInitialAction;
       state.player_id = 0;
       return state;
     }
 
     PartialPublicState act(const PartialPublicState &state, Action action) const
     {
-      const auto range = get_bid_range(state)
+      const auto range = get_bid_range(state);
       //assert(action >= range.first);
       //assert(action <= range.second);
       PartialPublicState new_state;
-      new_state.last_bid = action;
+      new_state.last_action = action;
       new_state.player_id = 1 - state.player_id;
       return new_state;
     }
@@ -146,7 +156,9 @@ namespace kuhn_poker
 
   private:
     static constexpr int kInitialAction = -1;
-    const Action num_actions_;
+    const Action  num_actions_;
+    const int num_hands_;
+
   };
 
 } // namespace kuhn_poker
