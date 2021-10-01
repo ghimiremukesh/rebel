@@ -78,9 +78,9 @@ void compute_reach_probabilities(
 }
 
 std::vector<double> compute_expected_terminal_values(
-    const Game& game, Action last_action, bool inverse,
+    const Game& game, std::vector<double>& my_reach_probabilities, bool inverse,
     std::vector<double>& op_reach_probabilities) {
-  auto values = compute_win_probability(game, last_action, op_reach_probabilities);
+  auto values = compute_win_probability(game, my_reach_probabilities, op_reach_probabilities);
   // Need to convert the probabilities to the payoff the traverser. Note,
   // the probabilities are true probabilities iff op_beliefs sum to 1.
   const auto belief_sum = vector_sum(op_reach_probabilities);
@@ -284,9 +284,9 @@ struct PartialTreeTraverser {
   // Populate traverser_values for terminal nodes.
   void precompute_terminal_leaves_values(int traverser) {
     for (auto node_id : terminal_indices) {
-      const auto last_action = tree[tree[node_id].parent].state.last_action;
+      //const auto last_action = tree[tree[node_id].parent].state.last_action;
       traverser_values[node_id] = compute_expected_terminal_values(
-          game, last_action,
+          game, reach_probabilities[traverser][node_id],
           /*inverse=*/tree[node_id].state.player_id != traverser,
           reach_probabilities[1 - traverser][node_id]);
     }
@@ -871,10 +871,17 @@ TreeStrategyStats compute_stategy_stats(const Game& game,
           reach_probabilities[1 - player][node_id];
       std::vector<double> op_beliefs = normalize_probabilities_safe(
           op_reach_probabilities, kReachSmoothingEps);
+
+        /// for kuhn poker since action doesn't have all the info as liar's dice
+        // lets try to implement my_belief as well
+      const auto my_reach_probabilities = 
+          reach_probabilities[player][node_id];
+      std::vector<double> my_beliefs = normalize_probabilities_safe(
+          my_reach_probabilities, kReachSmoothingEps);
       if (game.is_terminal(state)) {
         const auto last_action = tree[node.parent].state.last_action;
         node_values = compute_expected_terminal_values(
-            game, last_action, /*inverse=*/state.player_id != player, op_beliefs);
+            game, my_beliefs, /*inverse=*/state.player_id != player, op_beliefs);
       } else {
         assert(node.num_children() > 0);
       }
@@ -953,6 +960,12 @@ std::vector<double> compute_ev(const Game& game, const TreeStrategy& strategy1,
   assert(tree.size() == strategy2.size());
   std::vector<std::vector<double>> op_reach_probabilities;
   init_nd(tree.size(), game.num_hands(), 0.0, &op_reach_probabilities);
+
+  
+  // for kuhn poker
+
+  std::vector<std::vector<double>> my_reach_probabilities;
+  init_nd(tree.size(), game.num_hands(), 0.0, &my_reach_probabilities);
   // values[node][hand] :=
   // sum_{z, node->z} sum_{op_hand}
   //  P(op_hand) pi^{-i}(z|op_hand) pi^{i}(node -> z|hand) U_i(hand, op_hand, z)
@@ -961,6 +974,9 @@ std::vector<double> compute_ev(const Game& game, const TreeStrategy& strategy1,
   compute_reach_probabilities(tree, strategy2, get_initial_beliefs(game)[0],
                               1 - player, &op_reach_probabilities);
 
+  // my reach probability
+  compute_reach_probabilities(tree, strategy1, get_initial_beliefs(game)[0], player, &my_reach_probabilities);
+
   for (size_t node_id = tree.size(); node_id-- > 0;) {
     const auto& node = tree[node_id];
     const auto& state = node.state;
@@ -968,7 +984,7 @@ std::vector<double> compute_ev(const Game& game, const TreeStrategy& strategy1,
       assert(game.is_terminal(state));
       const auto last_action = tree[node.parent].state.last_action;
       values[node_id] = compute_expected_terminal_values(
-          game, last_action, /*inverse=*/state.player_id != player,
+          game, my_reach_probabilities[node_id], /*inverse=*/state.player_id != player,
           op_reach_probabilities[node_id]);
     } else if (state.player_id == player) {
       values[node_id].resize(game.num_hands());

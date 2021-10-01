@@ -61,8 +61,8 @@ namespace kuhn_poker
  // enum Action {kPass = 0, kBet = 1}; 
 
   using Action = int;
-  Action kPass = 0;
-  Action kBet = 1;
+  //Action kPass;
+  //Action kBet;
 
   //struct Card
   //{
@@ -122,7 +122,7 @@ namespace kuhn_poker
     std::pair<Action, Action> get_bid_range(
         const PartialPublicState &state) const
     {
-      return std::make_pair(kPass, kBet); // only two actions throughout the game 
+      return std::make_pair(0, 1); // only two actions throughout the game 
     }
 
     bool is_terminal(const PartialPublicState &state) const

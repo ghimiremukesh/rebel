@@ -5,8 +5,8 @@ decrease_lr_every: 400
 decrease_lr_times: 2
 grad_clip: 5.0
 env:
-  num_dice: 1
-  num_faces: 4
+  deck_size: 3
+  community_pot: 4
   random_action_prob: 0.25
   sample_leaf: true
   subgame_params:
