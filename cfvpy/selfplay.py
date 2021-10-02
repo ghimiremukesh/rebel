@@ -35,8 +35,8 @@ def _build_model(device, env_cfg, cfg, state_dict=None, half=False, jit=False):
     kwargs = cfg.kwargs
     model_class = getattr(cfvpy.models, model_name)
     model = model_class(
-        num_faces=env_cfg.num_faces, num_dice=env_cfg.num_dice, **kwargs
-    )
+        deck_size=env_cfg.deck_size, **kwargs
+    )   #community_pot=env_cfg.community_pot  --- remove for now
     if state_dict is not None:
         model.load_state_dict(state_dict)
     if half:
@@ -71,7 +71,7 @@ class CFVExp:
             ckpt_path,
         )
 
-        self.num_actions = cfg.env.num_dice * cfg.env.num_faces * 2 + 1
+        self.num_actions = 2
 
         self.net = _build_model(self.device, self.cfg.env, self.cfg.model)
         if self.is_master:
